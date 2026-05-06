@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>China 2027 — Trading</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080c18;--bg2:#0d1225;--bg3:#111830;--bg4:#161e38;
+  --border:rgba(100,120,220,.1);--border2:rgba(100,120,220,.2);
+  --green:#00e07a;--green-dim:rgba(0,224,122,.07);
+  --red:#ff4466;--red-dim:rgba(255,68,102,.07);
+  --blue:#4466ff;--blue-light:#8899ff;--purple:#aa66ff;--gold:#ffcc44;
+  --text:#c8d4f8;--muted:rgba(160,180,255,.3);--dimmer:rgba(100,120,200,.12);
+}
+html,body{min-height:100vh;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 15% 15%,rgba(68,102,255,.05) 0%,transparent 50%),radial-gradient(ellipse at 85% 85%,rgba(170,102,255,.04) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+/* TICKER */
+.ticker{position:relative;z-index:2;background:rgba(13,18,37,.95);border-bottom:1px solid var(--border);padding:8px 0;overflow:hidden;white-space:nowrap}
+.ticker-inner{display:inline-flex;gap:32px;animation:ticker 30s linear infinite}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick-item{display:flex;align-items:center;gap:8px;font-size:11px;font-family:'IBM Plex Mono',monospace}
+.tick-pair{color:rgba(160,180,255,.35);letter-spacing:.06em}
+.tick-val{color:rgba(200,212,248,.6)}
+.tick-up{color:var(--green)}.tick-dn{color:var(--red)}
+.tick-sep{color:rgba(100,120,200,.15)}
+
+/* NAV */
+nav{position:relative;z-index:2;background:rgba(13,18,37,.96);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px)}
+.nav-brand{font-size:20px;font-weight:600;letter-spacing:.06em;background:linear-gradient(135deg,#4466ff,#aa66ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-sub{font-size:9px;color:var(--muted);letter-spacing:.18em;margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.nav-right{display:flex;align-items:center;gap:20px}
+.nav-clock{font-size:22px;color:var(--blue-light);letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;text-shadow:0 0 20px rgba(136,153,255,.25)}
+.nav-date{font-size:9px;color:var(--muted);text-align:right;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;margin-top:2px}
+.nav-back{font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:.1em;transition:color .2s}
+.nav-back:hover{color:var(--text)}
+
+/* TABS */
+.tabs{position:relative;z-index:2;background:rgba(13,18,37,.9);border-bottom:1px solid var(--border);padding:0 28px;display:flex;backdrop-filter:blur(10px)}
+.tab{padding:12px 22px;font-size:10px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;letter-spacing:.12em;transition:all .2s;font-family:'IBM Plex Mono',monospace}
+.tab.active{color:var(--blue-light);border-bottom-color:var(--blue)}
+.tab:hover{color:var(--text)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+.wrapper{position:relative;z-index:2;max-width:1060px;margin:0 auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px}
+
+/* COMPTES */
+.comptes-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.compte{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;position:relative}
+.compte::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(100,130,255,.22),transparent)}
+.c-header{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.c-name{font-size:10px;color:var(--blue-light);letter-spacing:.12em;font-family:'IBM Plex Mono',monospace}
+.c-badge{font-size:8px;color:var(--purple);background:rgba(170,102,255,.08);border:1px solid rgba(170,102,255,.18);padding:3px 10px;border-radius:20px;letter-spacing:.08em}
+.c-body{padding:20px;display:flex;align-items:center;gap:20px}
+
+/* GAUGE */
+.gauge{position:relative;width:120px;height:120px;flex-shrink:0}
+.gauge svg{transform:rotate(-220deg)}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.g-pct{font-size:24px;font-weight:300;line-height:1;font-family:'IBM Plex Mono',monospace}
+.g-label{font-size:8px;color:var(--muted);letter-spacing:.1em;font-family:'IBM Plex Mono',monospace}
+.g-amt{font-size:10px;font-family:'IBM Plex Mono',monospace;margin-top:1px}
+
+.c-right{flex:1;display:flex;flex-direction:column;gap:12px}
+.c-balance{font-size:26px;font-weight:300;line-height:1;font-family:'IBM Plex Mono',monospace}
+.c-equity{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.chg{font-size:9px;padding:1px 6px;border-radius:3px;margin-left:5px}
+.chg-neg{color:var(--red);background:var(--red-dim)}.chg-pos{color:var(--green);background:var(--green-dim)}
+
+.c-bars{display:flex;flex-direction:column;gap:7px}
+.bar-top{display:flex;justify-content:space-between;margin-bottom:3px}
+.bar-label{font-size:8px;color:rgba(160,180,255,.22);letter-spacing:.1em;font-family:'IBM Plex Mono',monospace}
+.bar-val{font-size:8px;font-family:'IBM Plex Mono',monospace}
+.bar-track{height:2px;background:rgba(100,120,200,.08);border-radius:1px;overflow:hidden}
+.bar-fill{height:100%;border-radius:1px}
+.fg{background:linear-gradient(90deg,#00aa55,#00e07a);box-shadow:0 0 4px rgba(0,224,122,.2)}
+.fb{background:linear-gradient(90deg,#2244cc,#4466ff)}
+.fw{background:linear-gradient(90deg,#cc8800,#ffcc44);box-shadow:0 0 4px rgba(255,204,68,.2)}
+.fr{background:linear-gradient(90deg,#cc2244,#ff4466)}
+
+.c-footer{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border)}
+.f-item{padding:12px 0;text-align:center}
+.f-item+.f-item{border-left:1px solid var(--border)}
+.f-label{font-size:8px;color:rgba(160,180,255,.22);letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin-bottom:5px}
+.f-val{font-size:16px;font-weight:300;font-family:'IBM Plex Mono',monospace}
+
+/* PNL */
+.pnl-banner{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.pnl-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(100,130,255,.2),transparent)}
+.pnl-label{font-size:9px;color:var(--muted);letter-spacing:.18em;font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+.pnl-val{font-size:30px;font-weight:300;letter-spacing:.02em;font-family:'IBM Plex Mono',monospace}
+.pnl-sub{font-size:9px;color:var(--muted);margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.pnl-stats{display:flex;gap:20px}
+.pnl-stat{text-align:right}
+.pnl-stat-label{font-size:8px;color:var(--muted);letter-spacing:.12em;font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
+.pnl-stat-val{font-size:20px;font-weight:300;font-family:'IBM Plex Mono',monospace}
+
+/* CALENDRIER */
+.cal-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative}
+.cal-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(100,130,255,.2),transparent)}
+.cal-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cal-title{font-size:10px;color:var(--muted);letter-spacing:.15em;font-family:'IBM Plex Mono',monospace}
+.cal-nav{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;cursor:pointer}
+.cal-month{font-size:12px;color:var(--text);letter-spacing:.1em}
+.cal-body{padding:20px}
+.cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
+.cal-day-name{font-size:8px;color:var(--muted);text-align:center;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;padding:4px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-day{aspect-ratio:1;border-radius:8px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative}
+.cal-day:hover{transform:scale(1.08);z-index:2}
+.cal-day.empty{border:none;pointer-events:none}
+.cal-day.no-trade{background:rgba(100,120,200,.03);color:rgba(160,180,255,.15)}
+.cal-day.win-sm{background:rgba(0,224,122,.08);border-color:rgba(0,224,122,.15);color:var(--green)}
+.cal-day.win-md{background:rgba(0,224,122,.16);border-color:rgba(0,224,122,.28);color:var(--green)}
+.cal-day.win-lg{background:rgba(0,224,122,.28);border-color:rgba(0,224,122,.45);color:#00ff88;box-shadow:0 0 10px rgba(0,224,122,.12)}
+.cal-day.loss-sm{background:rgba(255,68,102,.07);border-color:rgba(255,68,102,.14);color:var(--red)}
+.cal-day.loss-md{background:rgba(255,68,102,.15);border-color:rgba(255,68,102,.28);color:var(--red)}
+.cal-day.loss-lg{background:rgba(255,68,102,.26);border-color:rgba(255,68,102,.45);color:#ff2255;box-shadow:0 0 10px rgba(255,68,102,.12)}
+.cal-day.today{outline:1px solid var(--blue-light);outline-offset:2px}
+.day-num{font-size:12px;font-weight:500;line-height:1;font-family:'IBM Plex Mono',monospace}
+.day-pct{font-size:8px;margin-top:2px;opacity:.85;font-family:'IBM Plex Mono',monospace}
+.cal-legend{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.leg-box{width:10px;height:10px;border-radius:3px;border:1px solid}
+
+/* ANALYSE */
+.analyse-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative}
+.analyse-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(170,102,255,.25),transparent)}
+.analyse-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.analyse-title{font-size:10px;color:var(--muted);letter-spacing:.15em;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:8px}
+.a-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple);animation:pulse 2s infinite}
+.btn-export{background:rgba(170,102,255,.1);border:1px solid rgba(170,102,255,.2);color:var(--purple);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s}
+.btn-export:hover{background:rgba(170,102,255,.2)}
+.btn-paste{background:rgba(68,102,255,.1);border:1px solid rgba(68,102,255,.2);color:var(--blue-light);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s}
+.btn-paste:hover{background:rgba(68,102,255,.2)}
+.analyse-body{padding:20px}
+.insight{background:rgba(100,120,200,.04);border:1px solid var(--border);border-left:2px solid var(--accent,var(--purple));border-radius:8px;padding:12px 16px;margin-bottom:10px}
+.insight-title{font-size:9px;color:var(--accent,var(--purple));letter-spacing:.14em;font-family:'IBM Plex Mono',monospace;margin-bottom:6px}
+.insight-text{font-size:12px;color:rgba(160,180,255,.55);line-height:1.7}
+.export-box{background:rgba(100,120,200,.04);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);white-space:pre-wrap;max-height:200px;overflow-y:auto;display:none}
+.paste-area{width:100%;background:rgba(100,120,200,.06);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'Inter',sans-serif;font-size:12px;color:var(--text);resize:vertical;min-height:100px;outline:none;transition:border-color .2s;display:none}
+.paste-area:focus{border-color:rgba(68,102,255,.4)}
+.paste-area::placeholder{color:rgba(160,180,255,.2)}
+
+/* HISTORIQUE */
+.hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative}
+.hist-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(100,130,255,.2),transparent)}
+.hist-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.hist-title{font-size:10px;color:var(--muted);letter-spacing:.15em;font-family:'IBM Plex Mono',monospace}
+.hist-actions{display:flex;gap:8px}
+.btn-add-trade{background:rgba(68,102,255,.1);border:1px solid rgba(68,102,255,.2);color:var(--blue-light);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s}
+.btn-add-trade:hover{background:rgba(68,102,255,.2)}
+.hist-head{display:grid;grid-template-columns:100px 70px 80px 55px 65px 65px 80px 70px 70px;background:var(--bg3);border-bottom:1px solid var(--border);padding:9px 18px}
+.th{font-size:8px;color:rgba(160,180,255,.2);letter-spacing:.12em;font-family:'IBM Plex Mono',monospace}
+.hist-body{max-height:320px;overflow-y:auto}
+.trade-row{display:grid;grid-template-columns:100px 70px 80px 55px 65px 65px 80px 70px 70px;padding:10px 18px;border-bottom:1px solid rgba(100,120,200,.05);transition:background .12s;cursor:pointer}
+.trade-row:hover{background:var(--bg3)}
+.td{font-size:11px;font-family:'IBM Plex Mono',monospace}
+.td.muted{color:var(--muted)}.td.win{color:var(--green);font-weight:500}.td.loss{color:var(--red);font-weight:500}
+.badge-buy{font-size:9px;color:var(--green);background:var(--green-dim);border:1px solid rgba(0,224,122,.15);padding:1px 7px;border-radius:3px}
+.badge-sell{font-size:9px;color:var(--red);background:var(--red-dim);border:1px solid rgba(255,68,102,.15);padding:1px 7px;border-radius:3px}
+.badge-win{font-size:9px;color:var(--green);background:var(--green-dim);padding:1px 7px;border-radius:3px}
+.badge-loss{font-size:9px;color:var(--red);background:var(--red-dim);padding:1px 7px;border-radius:3px}
+.hist-empty{padding:40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+
+/* MODAL TRADE */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:520px;margin:24px;overflow:hidden}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3)}
+.modal-title{font-size:12px;color:var(--text);font-weight:500;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
+.modal-body{padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+.field label{font-size:9px;color:var(--muted);letter-spacing:.12em;font-family:'IBM Plex Mono',monospace}
+.field input,.field select,.field textarea{background:rgba(100,120,200,.06);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(68,102,255,.4)}
+.field select option{background:var(--bg2)}
+.field textarea{resize:none;height:60px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;padding:9px 18px;border-radius:8px;cursor:pointer;transition:all .2s}
+.btn-cancel:hover{border-color:var(--muted);color:var(--text)}
+.btn-submit{background:var(--blue);border:none;color:#fff;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:9px 22px;border-radius:8px;cursor:pointer;transition:background .2s}
+.btn-submit:hover{background:#2244cc}
+
+/* MODAL COMPTES */
+.modal-comptes{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:600px;margin:24px;overflow:hidden;max-height:85vh;overflow-y:auto}
+.compte-config{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.compte-config-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.compte-config-name{font-size:11px;color:var(--blue-light);font-family:'IBM Plex Mono',monospace;letter-spacing:.1em}
+.btn-del-compte{background:var(--red-dim);border:1px solid rgba(255,68,102,.2);color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:8px;padding:3px 10px;border-radius:4px;cursor:pointer}
+.compte-config-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-add-compte{background:var(--green-dim);border:1px solid rgba(0,224,122,.2);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:10px;border-radius:8px;cursor:pointer;width:100%;transition:all .2s;margin-top:4px}
+.btn-add-compte:hover{background:rgba(0,224,122,.12)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:200;background:var(--bg2);border:1px solid var(--blue);border-radius:8px;padding:12px 18px;font-size:11px;color:var(--blue-light);font-family:'IBM Plex Mono',monospace;transform:translateY(60px);opacity:0;transition:all .3s;letter-spacing:.08em}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* STATUS */
+.statusbar{position:relative;z-index:2;border-top:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:10px;background:rgba(13,18,37,.9)}
+.status-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+.status-text{font-size:9px;color:var(--muted);letter-spacing:.15em;font-family:'IBM Plex Mono',monospace}
+
+@media(max-width:700px){.comptes-row{grid-template-columns:1fr}.modal-body{grid-template-columns:1fr}.hist-head,.trade-row{grid-template-columns:90px 70px 70px 55px 70px 70px}.th:nth-child(n+7),.td:nth-child(n+7){display:none}}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker-inner">
+    <div class="tick-item"><span class="tick-pair">EUR/USD</span><span class="tick-val" id="t-eurusd">1.0824</span><span class="tick-up" id="tc-eurusd"> ▲ +0.12%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">GBP/USD</span><span class="tick-val" id="t-gbpusd">1.2651</span><span class="tick-dn" id="tc-gbpusd"> ▼ -0.08%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">USD/CAD</span><span class="tick-val" id="t-usdcad">1.3642</span><span class="tick-dn" id="tc-usdcad"> ▼ -0.05%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">EUR/CAD</span><span class="tick-val" id="t-eurcad">1.4765</span><span class="tick-up" id="tc-eurcad"> ▲ +0.08%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">GBP/JPY</span><span class="tick-val" id="t-gbpjpy">194.22</span><span class="tick-dn" id="tc-gbpjpy"> ▼ -0.14%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">USD/JPY</span><span class="tick-val" id="t-usdjpy">153.42</span><span class="tick-up" id="tc-usdjpy"> ▲ +0.22%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">EUR/USD</span><span class="tick-val">1.0824</span><span class="tick-up"> ▲ +0.12%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">GBP/USD</span><span class="tick-val">1.2651</span><span class="tick-dn"> ▼ -0.08%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">USD/CAD</span><span class="tick-val">1.3642</span><span class="tick-dn"> ▼ -0.05%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">EUR/CAD</span><span class="tick-val">1.4765</span><span class="tick-up"> ▲ +0.08%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">GBP/JPY</span><span class="tick-val">194.22</span><span class="tick-dn"> ▼ -0.14%</span></div>
+    <span class="tick-sep">·</span>
+    <div class="tick-item"><span class="tick-pair">USD/JPY</span><span class="tick-val">153.42</span><span class="tick-up"> ▲ +0.22%</span></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div>
+    <div class="nav-brand">TRADING</div>
+    <div class="nav-sub">CHINA 2027 — PROP FIRMS</div>
+  </div>
+  <div class="nav-right">
+    <div style="text-align:right">
+      <div class="nav-clock" id="clock">--:--:--</div>
+      <div class="nav-date" id="nav-date">---</div>
+    </div>
+    <a class="nav-back" href="https://MomooChna.github.io/china2027/">← Hub</a>
+  </div>
+</nav>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('comptes')">COMPTES</div>
+  <div class="tab" onclick="switchTab('performances')">PERFORMANCES</div>
+  <div class="tab" onclick="switchTab('analyse')">ANALYSE</div>
+  <div class="tab" onclick="switchTab('historique')">HISTORIQUE</div>
+</div>
+
+<!-- ===== COMPTES ===== -->
+<div class="tab-content active" id="tab-comptes">
+<div class="wrapper">
+  <div style="display:flex;justify-content:flex-end">
+    <button class="btn-export" onclick="openGererComptes()" style="background:rgba(68,102,255,.1);border-color:rgba(68,102,255,.2);color:var(--blue-light)">⚙ GÉRER LES COMPTES</button>
+  </div>
+  <div class="comptes-row" id="comptes-container"></div>
+  <div class="pnl-banner">
+    <div>
+      <div class="pnl-label">P&L SEMAINE EN COURS</div>
+      <div class="pnl-val" id="pnl-semaine">$0.00</div>
+      <div class="pnl-sub" id="pnl-dates">—</div>
+    </div>
+    <div class="pnl-stats">
+      <div class="pnl-stat"><div class="pnl-stat-label">TRADES</div><div class="pnl-stat-val" id="pnl-trades" style="color:var(--text)">0</div></div>
+      <div class="pnl-stat"><div class="pnl-stat-label">WINS</div><div class="pnl-stat-val" id="pnl-wins" style="color:var(--green)">0</div></div>
+      <div class="pnl-stat"><div class="pnl-stat-label">LOSSES</div><div class="pnl-stat-val" id="pnl-losses" style="color:var(--red)">0</div></div>
+      <div class="pnl-stat"><div class="pnl-stat-label">WIN RATE</div><div class="pnl-stat-val" id="pnl-wr" style="color:var(--gold)">—</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== PERFORMANCES ===== -->
+<div class="tab-content" id="tab-performances">
+<div class="wrapper">
+  <div class="cal-card">
+    <div class="cal-header">
+      <div class="cal-title">CALENDRIER DES PERFORMANCES</div>
+      <div class="cal-nav">
+        <span onclick="prevMonth()">← PREV</span>
+        <span class="cal-month" id="cal-month-label">—</span>
+        <span onclick="nextMonth()">NEXT →</span>
+      </div>
+    </div>
+    <div class="cal-body">
+      <div class="cal-days-header">
+        <div class="cal-day-name">LUN</div><div class="cal-day-name">MAR</div><div class="cal-day-name">MER</div>
+        <div class="cal-day-name">JEU</div><div class="cal-day-name">VEN</div><div class="cal-day-name">SAM</div><div class="cal-day-name">DIM</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <div class="leg-item"><div class="leg-box" style="background:rgba(0,224,122,.28);border-color:rgba(0,224,122,.45)"></div>+2% et plus</div>
+        <div class="leg-item"><div class="leg-box" style="background:rgba(0,224,122,.16);border-color:rgba(0,224,122,.28)"></div>Profitable</div>
+        <div class="leg-item"><div class="leg-box" style="background:rgba(0,224,122,.08);border-color:rgba(0,224,122,.15)"></div>Légèrement +</div>
+        <div class="leg-item"><div class="leg-box" style="background:rgba(255,68,102,.07);border-color:rgba(255,68,102,.14)"></div>Légèrement -</div>
+        <div class="leg-item"><div class="leg-box" style="background:rgba(255,68,102,.15);border-color:rgba(255,68,102,.28)"></div>En perte</div>
+        <div class="leg-item"><div class="leg-box" style="background:rgba(255,68,102,.26);border-color:rgba(255,68,102,.45)"></div>-2% et plus</div>
+        <div class="leg-item"><div class="leg-box" style="background:rgba(100,120,200,.03);border-color:var(--border)"></div>Pas tradé</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== ANALYSE ===== -->
+<div class="tab-content" id="tab-analyse">
+<div class="wrapper">
+  <div class="analyse-card">
+    <div class="analyse-header">
+      <div class="analyse-title"><div class="a-dot"></div>ANALYSE DE TES TRADES</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-export" onclick="exportData()">⬇ EXPORTER POUR CLAUDE</button>
+        <button class="btn-paste" onclick="togglePaste()">⬆ COLLER L'ANALYSE</button>
+      </div>
+    </div>
+    <div class="analyse-body">
+      <div style="font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:14px;line-height:1.8">
+        1. Clique <span style="color:var(--purple)">EXPORTER</span> pour copier tes données de trading<br>
+        2. Colle-les dans une conversation avec Claude<br>
+        3. Demande : <span style="color:var(--blue-light)">"Analyse mes trades et détecte mes patterns"</span><br>
+        4. Colle la réponse avec le bouton <span style="color:var(--blue-light)">COLLER L'ANALYSE</span>
+      </div>
+      <pre class="export-box" id="export-box"></pre>
+      <div id="paste-wrap" style="display:none;margin-top:10px">
+        <textarea class="paste-area" id="paste-area" placeholder="Colle ici l'analyse de Claude..."></textarea>
+        <button onclick="saveAnalyse()" style="margin-top:8px;background:var(--blue);border:none;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:8px 16px;border-radius:6px;cursor:pointer;letter-spacing:.1em">SAUVEGARDER L'ANALYSE</button>
+      </div>
+      <div id="insights-container"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== HISTORIQUE ===== -->
+<div class="tab-content" id="tab-historique">
+<div class="wrapper">
+  <div class="hist-card">
+    <div class="hist-header">
+      <div class="hist-title">HISTORIQUE DES TRADES</div>
+      <div class="hist-actions">
+        <button class="btn-add-trade" onclick="openModalTrade()">+ AJOUTER UN TRADE</button>
+      </div>
+    </div>
+    <div class="hist-head">
+      <div class="th">DATE</div><div class="th">COMPTE</div><div class="th">PAIRE</div>
+      <div class="th">DIR.</div><div class="th">LOTS</div><div class="th">ENTRÉE</div>
+      <div class="th">P&L</div><div class="th">RÉS.</div><div class="th">NOTE</div>
+    </div>
+    <div class="hist-body" id="hist-body">
+      <div class="hist-empty">Aucun trade enregistré — clique sur + AJOUTER UN TRADE</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL TRADE -->
+<div class="modal-overlay" id="modal-trade">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">AJOUTER UN TRADE</div>
+      <button class="modal-close" onclick="closeModal('modal-trade')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>COMPTE</label>
+        <select id="f-compte"><option value="">Sélectionner...</option></select>
+      </div>
+      <div class="field"><label>DATE & HEURE</label><input type="datetime-local" id="f-datetime"></div>
+      <div class="field"><label>PAIRE</label>
+        <select id="f-paire">
+          <option>EUR/USD</option><option>GBP/USD</option><option>USD/CAD</option>
+          <option>EUR/CAD</option><option>GBP/JPY</option><option>USD/JPY</option><option>Autre</option>
+        </select>
+      </div>
+      <div class="field"><label>DIRECTION</label>
+        <select id="f-direction"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>
+      </div>
+      <div class="field"><label>LOTS</label><input type="number" id="f-lots" placeholder="0.10" step="0.01" min="0"></div>
+      <div class="field"><label>PRIX ENTRÉE</label><input type="number" id="f-entree" placeholder="1.0800" step="0.00001"></div>
+      <div class="field"><label>PRIX SORTIE</label><input type="number" id="f-sortie" placeholder="1.0850" step="0.00001"></div>
+      <div class="field"><label>P&L ($)</label><input type="number" id="f-pnl" placeholder="+150.00" step="0.01"></div>
+      <div class="field full"><label>NOTE / ANALYSE</label>
+        <textarea id="f-note" placeholder="Setup utilisé, erreurs, remarques..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-trade')">Annuler</button>
+      <button class="btn-submit" onclick="saveTrade()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GÉRER COMPTES -->
+<div class="modal-overlay" id="modal-comptes">
+  <div class="modal">
+    <div class="modal-comptes">
+      <div class="modal-header">
+        <div class="modal-title">GÉRER LES COMPTES</div>
+        <button class="modal-close" onclick="closeModal('modal-comptes')">×</button>
+      </div>
+      <div style="padding:20px">
+        <div id="comptes-config-list"></div>
+        <button class="btn-add-compte" onclick="addCompte()">+ AJOUTER UN COMPTE</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('modal-comptes')">Annuler</button>
+        <button class="btn-submit" onclick="saveComptes()">Sauvegarder</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="statusbar">
+  <div class="status-dot"></div>
+  <div class="status-text">MODULE TRADING — ACTIF — CHINA 2027</div>
+  <div style="margin-left:auto;font-size:9px;color:var(--muted);letter-spacing:.12em;font-family:'IBM Plex Mono',monospace" id="sync">SYNC: --:--:--</div>
+</div>
+
+<script>
+// ===== ÉTAT =====
+let comptes = JSON.parse(localStorage.getItem('trading_comptes') || 'null') || [
+  {id:'qt01',nom:'QUANT TEKEL — 01',phase:'Phase 1',taille:50000,maxDD:5000,dailyDD:2000,profitTarget:4000,actif:true},
+  {id:'qt02',nom:'QUANT TEKEL — 02',phase:'Phase 1',taille:50000,maxDD:5000,dailyDD:2000,profitTarget:4000,actif:true}
+];
+let trades = JSON.parse(localStorage.getItem('trading_trades') || '[]');
+let analyses = JSON.parse(localStorage.getItem('trading_analyses') || '[]');
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+// ===== SAVE =====
+function save(){
+  localStorage.setItem('trading_comptes', JSON.stringify(comptes));
+  localStorage.setItem('trading_trades', JSON.stringify(trades));
+  localStorage.setItem('trading_analyses', JSON.stringify(analyses));
+}
+
+// ===== CLOCK =====
+function tick(){
+  const now = new Date();
+  const t = now.toLocaleTimeString('fr-FR');
+  const jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  document.getElementById('clock').textContent = t;
+  document.getElementById('nav-date').textContent = jours[now.getDay()]+' '+now.getDate()+' '+mois[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('sync').textContent = 'SYNC: '+t;
+}
+tick(); setInterval(tick,1000);
+
+// ===== CALCULS =====
+function getBalanceCompte(compteId){
+  const compte = comptes.find(c=>c.id===compteId);
+  if(!compte) return 0;
+  const pnlTotal = trades.filter(t=>t.compte===compteId).reduce((a,t)=>a+parseFloat(t.pnl||0),0);
+  return compte.taille + pnlTotal;
+}
+
+function getDrawdownCompte(compteId){
+  const compte = comptes.find(c=>c.id===compteId);
+  if(!compte) return {dd:0,pct:0,daily:0,dailyPct:0};
+  const compteTrades = trades.filter(t=>t.compte===compteId);
+  // Max DD depuis le pic
+  let peak = compte.taille, maxDD = 0;
+  let bal = compte.taille;
+  compteTrades.forEach(t=>{
+    bal += parseFloat(t.pnl||0);
+    if(bal > peak) peak = bal;
+    const dd = peak - bal;
+    if(dd > maxDD) maxDD = dd;
+  });
+  // Daily DD aujourd'hui
+  const today = new Date().toISOString().split('T')[0];
+  const todayTrades = compteTrades.filter(t=>t.datetime && t.datetime.startsWith(today));
+  const dailyPnl = todayTrades.reduce((a,t)=>a+parseFloat(t.pnl||0),0);
+  const dailyDD = Math.max(0, -dailyPnl);
+  return {
+    dd: maxDD, pct: (maxDD/compte.maxDD*100),
+    daily: dailyDD, dailyPct: (dailyDD/compte.dailyDD*100)
+  };
+}
+
+function getProfitCompte(compteId){
+  const compte = comptes.find(c=>c.id===compteId);
+  if(!compte) return {profit:0,pct:0};
+  const bal = getBalanceCompte(compteId);
+  const profit = Math.max(0, bal - compte.taille);
+  return {profit, pct: profit/compte.profitTarget*100};
+}
+
+function getWinRate(compteId){
+  const t = compteId ? trades.filter(t=>t.compte===compteId) : trades;
+  if(!t.length) return {wr:0,wins:0,losses:0,total:0};
+  const wins = t.filter(t=>parseFloat(t.pnl||0)>0).length;
+  return {wr:Math.round(wins/t.length*100),wins,losses:t.length-wins,total:t.length};
+}
+
+// ===== RENDER COMPTES =====
+function renderComptes(){
+  const container = document.getElementById('comptes-container');
+  const actifs = comptes.filter(c=>c.actif);
+  container.style.gridTemplateColumns = actifs.length === 1 ? '1fr' : '1fr 1fr';
+  container.innerHTML = actifs.map(compte=>{
+    const bal = getBalanceCompte(compte.id);
+    const dd = getDrawdownCompte(compte.id);
+    const prof = getProfitCompte(compte.id);
+    const wr = getWinRate(compte.id);
+    const pnlTotal = bal - compte.taille;
+    const ddPct = Math.min(dd.pct, 100);
+    const profPct = Math.min(prof.pct, 100);
+    const dailyPct = Math.min(dd.dailyPct, 100);
+    const ddColor = ddPct < 40 ? '#00e07a' : ddPct < 70 ? '#ffcc44' : '#ff4466';
+    const ddClass = ddPct < 40 ? 'fg' : ddPct < 70 ? 'fw' : 'fr';
+    const ddArc = (ddPct/100)*240;
+    return `<div class="compte">
+      <div class="c-header">
+        <div class="c-name">${compte.nom}</div>
+        <div class="c-badge">${compte.phase.toUpperCase()}</div>
+      </div>
+      <div class="c-body">
+        <div class="gauge">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(100,120,200,.08)" stroke-width="8" stroke-dasharray="240" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="${ddColor}" stroke-width="8" stroke-dasharray="${ddArc} ${240-ddArc}" stroke-linecap="round" style="filter:drop-shadow(0 0 5px ${ddColor}55)"/>
+          </svg>
+          <div class="gauge-center">
+            <div class="g-pct" style="color:${ddColor}">${ddPct.toFixed(0)}%</div>
+            <div class="g-label">MAX DD</div>
+            <div class="g-amt" style="color:${ddColor}88">$${dd.dd.toFixed(0)}</div>
+          </div>
+        </div>
+        <div class="c-right">
+          <div>
+            <div class="c-balance" style="color:${pnlTotal>=0?'var(--green)':'var(--red)'}">$${bal.toFixed(2)}</div>
+            <div class="c-equity">P&L total <span class="chg ${pnlTotal>=0?'chg-pos':'chg-neg'}">${pnlTotal>=0?'▲':'▼'} $${Math.abs(pnlTotal).toFixed(2)}</span></div>
+          </div>
+          <div class="c-bars">
+            <div>
+              <div class="bar-top"><span class="bar-label">DAILY LOSS</span><span class="bar-val" style="color:${dailyPct<50?'var(--green)':'var(--red)'}">${dailyPct.toFixed(0)}% · $${dd.daily.toFixed(0)}</span></div>
+              <div class="bar-track"><div class="bar-fill ${dailyPct<50?'fg':dailyPct<80?'fw':'fr'}" style="width:${Math.min(dailyPct,100)}%"></div></div>
+            </div>
+            <div>
+              <div class="bar-top"><span class="bar-label">PROFIT TARGET</span><span class="bar-val" style="color:${profPct>0?'var(--blue-light)':'rgba(160,180,255,.25)'}">${profPct.toFixed(0)}% · $${prof.profit.toFixed(0)}</span></div>
+              <div class="bar-track"><div class="bar-fill fb" style="width:${Math.min(profPct,100)}%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="c-footer">
+        <div class="f-item"><div class="f-label">WIN RATE</div><div class="f-val" style="color:var(--gold)">${wr.wr}%</div></div>
+        <div class="f-item"><div class="f-label">TRADES</div><div class="f-val" style="color:var(--text)">${wr.total}</div></div>
+        <div class="f-item"><div class="f-label">BREACH</div><div class="f-val" style="color:var(--red);font-size:13px">$${(compte.taille-compte.maxDD).toLocaleString()}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+  renderPNLSemaine();
+}
+
+function renderPNLSemaine(){
+  const now = new Date();
+  const day = now.getDay()===0?6:now.getDay()-1;
+  const monday = new Date(now); monday.setDate(now.getDate()-day); monday.setHours(0,0,0,0);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6); sunday.setHours(23,59,59,999);
+  const weekTrades = trades.filter(t=>{
+    if(!t.datetime) return false;
+    const d = new Date(t.datetime);
+    return d>=monday && d<=sunday;
+  });
+  const pnl = weekTrades.reduce((a,t)=>a+parseFloat(t.pnl||0),0);
+  const wins = weekTrades.filter(t=>parseFloat(t.pnl||0)>0).length;
+  const losses = weekTrades.length - wins;
+  const wr = weekTrades.length ? Math.round(wins/weekTrades.length*100) : 0;
+  const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  document.getElementById('pnl-semaine').textContent = `${pnl>=0?'+':''}$${pnl.toFixed(2)}`;
+  document.getElementById('pnl-semaine').style.color = pnl>=0?'var(--green)':'var(--red)';
+  document.getElementById('pnl-dates').textContent = `${monday.getDate()} ${mois[monday.getMonth()]} → ${sunday.getDate()} ${mois[sunday.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('pnl-trades').textContent = weekTrades.length;
+  document.getElementById('pnl-wins').textContent = wins;
+  document.getElementById('pnl-losses').textContent = losses;
+  document.getElementById('pnl-wr').textContent = weekTrades.length ? wr+'%' : '—';
+}
+
+// ===== CALENDRIER =====
+function renderCalendar(){
+  const moisNoms=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  document.getElementById('cal-month-label').textContent = `${moisNoms[calMonth]} ${calYear}`;
+  const grid = document.getElementById('cal-grid');
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth+1, 0);
+  const startDow = firstDay.getDay()===0?6:firstDay.getDay()-1;
+  const today = new Date();
+  // Calculer PNL par jour
+  const pnlParJour = {};
+  const capital = comptes.filter(c=>c.actif).reduce((a,c)=>a+c.taille,0);
+  trades.forEach(t=>{
+    if(!t.datetime) return;
+    const d = new Date(t.datetime).toISOString().split('T')[0];
+    pnlParJour[d] = (pnlParJour[d]||0) + parseFloat(t.pnl||0);
+  });
+  let html = '';
+  for(let i=0;i<startDow;i++) html += '<div class="cal-day empty"></div>';
+  for(let d=1;d<=lastDay.getDate();d++){
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===d;
+    const dow = new Date(calYear,calMonth,d).getDay();
+    const isWeekend = dow===0||dow===6;
+    if(isWeekend){html+=`<div class="cal-day no-trade${isToday?' today':''}"><div class="day-num">${d}</div></div>`;continue}
+    if(pnlParJour[dateStr]!==undefined){
+      const pnl = pnlParJour[dateStr];
+      const pct = capital>0?pnl/capital*100:0;
+      let cls = pct>2?'win-lg':pct>0.5?'win-md':pct>0?'win-sm':pct<-2?'loss-lg':pct<-0.5?'loss-md':'loss-sm';
+      html+=`<div class="cal-day ${cls}${isToday?' today':''}"><div class="day-num">${d}</div><div class="day-pct">${pct>=0?'+':''}${pct.toFixed(1)}%</div></div>`;
+    } else {
+      html+=`<div class="cal-day no-trade${isToday?' today':''}"><div class="day-num">${d}</div></div>`;
+    }
+  }
+  grid.innerHTML = html;
+}
+function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--}renderCalendar()}
+function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++}renderCalendar()}
+
+// ===== HISTORIQUE =====
+function renderHistorique(){
+  const body = document.getElementById('hist-body');
+  if(!trades.length){body.innerHTML='<div class="hist-empty">Aucun trade enregistré — clique sur + AJOUTER UN TRADE</div>';return}
+  body.innerHTML = [...trades].reverse().map((t,i)=>{
+    const pnl = parseFloat(t.pnl||0);
+    const idx = trades.length-1-i;
+    return `<div class="trade-row">
+      <div class="td muted">${t.datetime?t.datetime.replace('T',' ').slice(0,16):'—'}</div>
+      <div class="td muted">${t.compte||'—'}</div>
+      <div class="td">${t.paire||'—'}</div>
+      <div class="td"><span class="${t.direction==='BUY'?'badge-buy':'badge-sell'}">${t.direction||'—'}</span></div>
+      <div class="td muted">${t.lots||'—'}</div>
+      <div class="td muted">${t.entree||'—'}</div>
+      <div class="td ${pnl>=0?'win':'loss'}">${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(2)}</div>
+      <div class="td"><span class="${pnl>=0?'badge-win':'badge-loss'}">${pnl>=0?'WIN':'LOSS'}</span></div>
+      <div class="td muted" style="font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.note||'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== MODAL TRADE =====
+function openModalTrade(){
+  // Peupler select comptes
+  const sel = document.getElementById('f-compte');
+  sel.innerHTML = comptes.filter(c=>c.actif).map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  document.getElementById('f-datetime').value = new Date().toISOString().slice(0,16);
+  document.getElementById('modal-trade').classList.add('open');
+}
+function saveTrade(){
+  const pnl = parseFloat(document.getElementById('f-pnl').value);
+  if(!document.getElementById('f-compte').value||isNaN(pnl)){showToast('Compte et P&L obligatoires',true);return}
+  trades.push({
+    compte: document.getElementById('f-compte').value,
+    datetime: document.getElementById('f-datetime').value,
+    paire: document.getElementById('f-paire').value,
+    direction: document.getElementById('f-direction').value,
+    lots: document.getElementById('f-lots').value,
+    entree: document.getElementById('f-entree').value,
+    sortie: document.getElementById('f-sortie').value,
+    pnl: pnl,
+    note: document.getElementById('f-note').value
+  });
+  save();
+  closeModal('modal-trade');
+  renderAll();
+  showToast('Trade enregistré ✓');
+  ['f-lots','f-entree','f-sortie','f-pnl','f-note'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ===== GÉRER COMPTES =====
+function openGererComptes(){
+  renderComptesConfig();
+  document.getElementById('modal-comptes').classList.add('open');
+}
+function renderComptesConfig(){
+  const list = document.getElementById('comptes-config-list');
+  list.innerHTML = comptes.map((c,i)=>`
+    <div class="compte-config">
+      <div class="compte-config-header">
+        <div class="compte-config-name">${c.nom}</div>
+        <button class="btn-del-compte" onclick="deleteCompte(${i})">SUPPRIMER</button>
+      </div>
+      <div class="compte-config-grid">
+        <div class="field"><label>NOM</label><input type="text" value="${c.nom}" onchange="comptes[${i}].nom=this.value"></div>
+        <div class="field"><label>PHASE</label>
+          <select onchange="comptes[${i}].phase=this.value">
+            <option ${c.phase==='Phase 1'?'selected':''}>Phase 1</option>
+            <option ${c.phase==='Phase 2'?'selected':''}>Phase 2</option>
+            <option ${c.phase==='Funded'?'selected':''}>Funded</option>
+          </select>
+        </div>
+        <div class="field"><label>TAILLE ($)</label><input type="number" value="${c.taille}" onchange="comptes[${i}].taille=parseFloat(this.value)"></div>
+        <div class="field"><label>MAX DD ($)</label><input type="number" value="${c.maxDD}" onchange="comptes[${i}].maxDD=parseFloat(this.value)"></div>
+        <div class="field"><label>DAILY DD ($)</label><input type="number" value="${c.dailyDD}" onchange="comptes[${i}].dailyDD=parseFloat(this.value)"></div>
+        <div class="field"><label>PROFIT TARGET ($)</label><input type="number" value="${c.profitTarget}" onchange="comptes[${i}].profitTarget=parseFloat(this.value)"></div>
+        <div class="field"><label>ACTIF</label>
+          <select onchange="comptes[${i}].actif=this.value==='true'">
+            <option value="true" ${c.actif?'selected':''}>Oui</option>
+            <option value="false" ${!c.actif?'selected':''}>Non</option>
+          </select>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function addCompte(){
+  comptes.push({id:'c'+Date.now(),nom:'Nouveau compte',phase:'Phase 1',taille:50000,maxDD:5000,dailyDD:2000,profitTarget:4000,actif:true});
+  renderComptesConfig();
+}
+function deleteCompte(i){comptes.splice(i,1);renderComptesConfig()}
+function saveComptes(){save();closeModal('modal-comptes');renderAll();showToast('Comptes sauvegardés ✓')}
+
+// ===== EXPORT / ANALYSE =====
+function exportData(){
+  const box = document.getElementById('export-box');
+  const wr = getWinRate(null);
+  const lines = [
+    '=== DONNÉES TRADING CHINA 2027 ===',
+    `Date d'export: ${new Date().toLocaleDateString('fr-FR')}`,
+    `Total trades: ${trades.length}`,
+    `Win rate global: ${wr.wr}%`,
+    `Wins: ${wr.wins} | Losses: ${wr.losses}`,
+    '',
+    '=== TRADES ===',
+    ...trades.map(t=>`${t.datetime||'?'} | ${t.compte} | ${t.paire} | ${t.direction} | ${t.lots} lots | Entrée: ${t.entree} | Sortie: ${t.sortie} | P&L: ${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(2)} | Note: ${t.note||'—'}`)
+  ].join('\n');
+  box.textContent = lines;
+  box.style.display = 'block';
+  navigator.clipboard.writeText(lines).then(()=>showToast('Données copiées ✓')).catch(()=>showToast('Copie manuelle depuis la zone de texte'));
+}
+function togglePaste(){
+  const wrap = document.getElementById('paste-wrap');
+  wrap.style.display = wrap.style.display==='none'?'block':'none';
+}
+function saveAnalyse(){
+  const text = document.getElementById('paste-area').value;
+  if(!text){showToast('Colle d\'abord l\'analyse',true);return}
+  analyses.unshift({date:new Date().toISOString(),text});
+  save();
+  renderInsights();
+  document.getElementById('paste-area').value='';
+  document.getElementById('paste-wrap').style.display='none';
+  showToast('Analyse sauvegardée ✓');
+}
+function renderInsights(){
+  const container = document.getElementById('insights-container');
+  if(!analyses.length){container.innerHTML='';return}
+  container.innerHTML = analyses.slice(0,3).map(a=>`
+    <div class="insight" style="--accent:var(--purple);margin-top:10px">
+      <div class="insight-title">ANALYSE DU ${new Date(a.date).toLocaleDateString('fr-FR')}</div>
+      <div class="insight-text" style="white-space:pre-wrap">${a.text}</div>
+    </div>`).join('');
+}
+
+// ===== UTILS =====
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['comptes','performances','analyse','historique'][i]===name));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id==='tab-'+name));
+  if(name==='performances') renderCalendar();
+}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function showToast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.borderColor=err?'var(--red)':'var(--blue)';t.style.color=err?'var(--red)':'var(--blue-light)';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+
+function renderAll(){renderComptes();renderHistorique();renderCalendar();renderInsights()}
+
+// ===== INIT =====
+renderAll();
+</script>
+</body>
+</html>
